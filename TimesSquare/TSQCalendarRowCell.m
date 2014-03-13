@@ -44,7 +44,7 @@
 
 - (void)configureButton:(UIButton *)button;
 {
-    button.titleLabel.font = [UIFont boldSystemFontOfSize:19.f];
+    button.titleLabel.font = [UIFont systemFontOfSize:15.f];
     button.titleLabel.shadowOffset = self.shadowOffset;
     button.adjustsImageWhenDisabled = NO;
     [button setTitleColor:self.textColor forState:UIControlStateNormal];
@@ -140,7 +140,13 @@
         [self.notThisMonthButtons[index] setAccessibilityLabel:accessibilityLabel];
         
         NSDateComponents *thisDateComponents = [self.calendar components:NSDayCalendarUnit|NSMonthCalendarUnit|NSYearCalendarUnit fromDate:date];
-        
+        if([self.calendarView isMealPlanDate:thisDateComponents]){
+            [self.dayButtons[index] setFont:[UIFont boldSystemFontOfSize:19]];
+            [self.notThisMonthButtons[index] setFont:[UIFont boldSystemFontOfSize:19]];
+            [self.dayButtons[index] setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+            [self.notThisMonthButtons[index] setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        }
+
         [self.dayButtons[index] setHidden:YES];
         [self.notThisMonthButtons[index] setHidden:YES];
 

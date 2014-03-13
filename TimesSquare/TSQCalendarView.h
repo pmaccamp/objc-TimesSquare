@@ -8,7 +8,7 @@
 //  which Square, Inc. licenses this file to you.
 
 #import <UIKit/UIKit.h>
-
+#import "TSQCalendarMonthHeaderCell.h"
 
 @protocol TSQCalendarViewDelegate;
 
@@ -17,7 +17,7 @@
  
  The implementation and usage are very similar to `UITableView`: the app provides reusable cells via a data source and controls behavior via a delegate. See `TSQCalendarCell` for a cell superclass.
  */
-@interface TSQCalendarView : UIView
+@interface TSQCalendarView : UIView <TSQCalendarMonthHeaderCellDelegate>
 
 /** @name Date Setup */
 
@@ -49,6 +49,8 @@
  If not set, this defaults to `[NSCalendar currentCalendar]`.
  */
 @property (nonatomic, strong) NSCalendar *calendar;
+
+@property (nonatomic, strong) NSMutableArray *mealPlanDateComponents;
 
 /** @name Visual Configuration */
 
@@ -103,6 +105,7 @@
  @param animated YES if you want to animate the change in position, NO if it should be immediate.
  */
 - (void)scrollToDate:(NSDate *)date animated:(BOOL)animated;
+- (BOOL)isMealPlanDate:(NSDateComponents *) day;
 
 @end
 

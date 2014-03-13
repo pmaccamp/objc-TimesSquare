@@ -28,9 +28,19 @@ static const CGFloat TSQCalendarMonthHeaderCellMonthsHeight = 20.f;
     if (!self) {
         return nil;
     }
+    // Fix long press on buttons in cell
+    for (id obj in self.subviews)
+    {
+        if ([NSStringFromClass([obj class]) isEqualToString:@"UITableViewCellScrollView"])
+        {
+            UIScrollView *scroll = (UIScrollView *) obj;
+            scroll.delaysContentTouches = NO;
+            break;
+        }
+    }
     
     [self createHeaderLabels];
-    
+
     return self;
 }
 
@@ -50,6 +60,34 @@ static const CGFloat TSQCalendarMonthHeaderCellMonthsHeight = 20.f;
         _monthDateFormatter.dateFormat = [NSDateFormatter dateFormatFromTemplate:dateComponents options:0 locale:[NSLocale currentLocale]];
     }
     return _monthDateFormatter;
+}
+
+- (void)createNavigationButtons{
+    self.nextMonth = [[UIButton alloc] initWithFrame:CGRectMake(self.frame.size.width - 30, 9, 5, 5)];
+    self.previousMonth = [[UIButton alloc] initWithFrame:CGRectMake(2, 9, 5, 5)];
+    [self.nextMonth setTitle:@">" forState:UIControlStateNormal];
+    [self.previousMonth setTitle:@"<" forState:UIControlStateNormal];
+    [self.nextMonth setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
+    [self.previousMonth setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
+    [self.nextMonth setTitleColor:[UIColor lightGrayColor] forState:UIControlStateHighlighted];
+    [self.previousMonth setTitleColor:[UIColor lightGrayColor] forState:UIControlStateHighlighted];
+    
+    [self.previousMonth sizeToFit];
+    [self.nextMonth sizeToFit];
+    
+    [self.nextMonth addTarget:self action:@selector(nextMonthButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    [self.previousMonth addTarget:self action:@selector(previousMonthButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+
+    [self addSubview:self.nextMonth];
+    [self addSubview:self.previousMonth];
+}
+
+- (void)nextMonthButtonPressed:(id) sender{
+    [self.delegate nextMonthPressedForCell:self];
+}
+
+- (void)previousMonthButtonPressed:(id) sender{
+    [self.delegate previousMonthPressedForCell:self];
 }
 
 - (void)createHeaderLabels;
@@ -75,8 +113,6 @@ static const CGFloat TSQCalendarMonthHeaderCellMonthsHeight = 20.f;
         label.font = [UIFont boldSystemFontOfSize:12.f];
         label.backgroundColor = self.backgroundColor;
         label.textColor = self.textColor;
-        label.shadowColor = [UIColor whiteColor];
-        label.shadowOffset = self.shadowOffset;
         [label sizeToFit];
         headerLabels[ordinality - 1] = label;
         [self.contentView addSubview:label];
@@ -87,9 +123,7 @@ static const CGFloat TSQCalendarMonthHeaderCellMonthsHeight = 20.f;
     self.headerLabels = headerLabels;
     self.textLabel.textAlignment = UITextAlignmentCenter;
     self.textLabel.textColor = self.textColor;
-    self.textLabel.shadowColor = [UIColor whiteColor];
-    self.textLabel.shadowOffset = self.shadowOffset;
-}
+    }
 
 - (void)layoutSubviews;
 {
@@ -97,7 +131,8 @@ static const CGFloat TSQCalendarMonthHeaderCellMonthsHeight = 20.f;
 
     CGRect bounds = self.contentView.bounds;
     bounds.size.height -= TSQCalendarMonthHeaderCellMonthsHeight;
-    self.textLabel.frame = CGRectOffset(bounds, 0.0f, 5.0f);
+    bounds.size.width -= 100.0f;
+    self.textLabel.frame = CGRectOffset(bounds, 50.0f, 5.0f);
 }
 
 - (void)layoutViewsForColumnAtIndex:(NSUInteger)index inRect:(CGRect)rect;
@@ -114,6 +149,7 @@ static const CGFloat TSQCalendarMonthHeaderCellMonthsHeight = 20.f;
     [super setFirstOfMonth:firstOfMonth];
     self.textLabel.text = [self.monthDateFormatter stringFromDate:firstOfMonth];
     self.accessibilityLabel = self.textLabel.text;
+    [self createNavigationButtons];
 }
 
 - (void)setBackgroundColor:(UIColor *)backgroundColor;

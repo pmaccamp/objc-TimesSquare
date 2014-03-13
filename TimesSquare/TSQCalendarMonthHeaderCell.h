@@ -9,6 +9,8 @@
 
 #import "TSQCalendarCell.h"
 
+@protocol TSQCalendarMonthHeaderCellDelegate;
+
 /** The `TSQCalendarMonthHeaderCell` class displays the month name and day names at the top of a month's worth of weeks.
  
  By default, it lays out the day names in the bottom 20 points, the month name in the remainder of its height, and has a height of 65 points. You'll want to subclass it to change any of those things.
@@ -23,11 +25,22 @@
  */
 @property (nonatomic, strong) NSArray *headerLabels;
 
+@property (nonatomic, strong) UIButton *nextMonth;
+@property (nonatomic, strong) UIButton *previousMonth;
+
+@property (nonatomic, weak) id<TSQCalendarMonthHeaderCellDelegate> delegate;
 
 /** Creates the header labels.
  
  If you want the text in your header labels to be something other than the short day format ("Mon Tue Wed" etc.), override this method, call `super`, and loop through `self.headerLabels`, changing their text.
  */
 - (void)createHeaderLabels;
+
+@end
+
+@protocol TSQCalendarMonthHeaderCellDelegate <NSObject>
+
+- (void)nextMonthPressedForCell:(TSQCalendarMonthHeaderCell *)cell;
+- (void)previousMonthPressedForCell:(TSQCalendarMonthHeaderCell *)cell;
 
 @end

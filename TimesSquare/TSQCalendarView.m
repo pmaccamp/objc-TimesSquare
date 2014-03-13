@@ -47,12 +47,15 @@
 
 - (void)_TSQCalendarView_commonInit;
 {
+    _mealPlanDateComponents = [[NSMutableArray alloc] init];
     _tableView = [[UITableView alloc] initWithFrame:self.bounds style:UITableViewStylePlain];
     _tableView.dataSource = self;
     _tableView.delegate = self;
     _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     _tableView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
-    [self addSubview:_tableView];    
+    // Fix long press on buttons
+    _tableView.delaysContentTouches = NO;
+    [self addSubview:_tableView];
 }
 
 - (void)dealloc;
@@ -165,9 +168,39 @@
 - (TSQCalendarMonthHeaderCell *)makeHeaderCellWithIdentifier:(NSString *)identifier;
 {
     TSQCalendarMonthHeaderCell *cell = [[[self headerCellClass] alloc] initWithCalendar:self.calendar reuseIdentifier:identifier];
+    cell.delegate = self;
     cell.backgroundColor = self.backgroundColor;
     cell.calendarView = self;
     return cell;
+}
+
+- (void)setMealPlanDateComponents:(NSMutableArray *)mealPlanDateComponents{
+    _mealPlanDateComponents = mealPlanDateComponents;
+    [self.tableView reloadData];
+}
+
+- (BOOL)isMealPlanDate:(NSDateComponents *) day{
+    for(NSDateComponents *mealPlanDay in self.mealPlanDateComponents){
+        if (day.day == mealPlanDay.day && day.month == mealPlanDay.month && day.year == mealPlanDay.year)
+            return true;
+    }
+    return false;
+}
+
+- (void)nextMonthPressedForCell:(TSQCalendarMonthHeaderCell *)cell{
+    NSDateComponents *dateComponents = [[NSDateComponents alloc] init];
+    [dateComponents setMonth:1];
+    self.firstDate = [self.calendar dateByAddingComponents:dateComponents toDate:self.firstDate options:0];
+    self.lastDate = [self.calendar dateByAddingComponents:dateComponents toDate:self.lastDate options:0];
+    [self.tableView reloadData];
+}
+
+- (void)previousMonthPressedForCell:(TSQCalendarMonthHeaderCell *)cell{
+    NSDateComponents *dateComponents = [[NSDateComponents alloc] init];
+    [dateComponents setMonth:-1];
+    self.firstDate = [self.calendar dateByAddingComponents:dateComponents toDate:self.firstDate options:0];
+    self.lastDate = [self.calendar dateByAddingComponents:dateComponents toDate:self.lastDate options:0];
+    [self.tableView reloadData];
 }
 
 #pragma mark Calendar calculations
