@@ -25,8 +25,8 @@
  */
 @property (nonatomic, strong) NSArray *headerLabels;
 
-@property (nonatomic, strong) UIButton *nextMonth;
-@property (nonatomic, strong) UIButton *previousMonth;
+@property UIButton *nextMonth;
+@property UIButton *previousMonth;
 
 @property (nonatomic, weak) id<TSQCalendarMonthHeaderCellDelegate> delegate;
 
@@ -35,7 +35,8 @@
  If you want the text in your header labels to be something other than the short day format ("Mon Tue Wed" etc.), override this method, call `super`, and loop through `self.headerLabels`, changing their text.
  */
 - (void)createHeaderLabels;
-
+- (void)checkNeedToHidePreviousMonthButton;
+- (void)checkNeedToHideNextMonthButton;
 @end
 
 @protocol TSQCalendarMonthHeaderCellDelegate <NSObject>

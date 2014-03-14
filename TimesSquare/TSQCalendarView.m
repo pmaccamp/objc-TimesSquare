@@ -14,6 +14,7 @@
 @interface TSQCalendarView () <UITableViewDataSource, UITableViewDelegate>
 
 @property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) UIButton *todayButton;
 @property (nonatomic, strong) TSQCalendarMonthHeaderCell *headerView; // nil unless pinsHeaderToTop == YES
 
 @end
@@ -56,21 +57,30 @@
     _tableView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
     // Fix long press on buttons
     _tableView.delaysContentTouches = NO;
+    _tableView.autoresizesSubviews = NO;
     [self addSubview:_tableView];
+    
     [self addTodayButton];
+    
+    if ([[UIDevice currentDevice].systemVersion floatValue] >= 7){
+        _tableView.contentInset = UIEdgeInsetsMake(-70, 0, 0, 0);
+    }
 }
 
 - (void)addTodayButton{
-    UIButton *button = [[UIButton alloc] init];
-    [button setTitle:@"Today" forState:UIControlStateNormal];
-    [button sizeToFit];
+    self.todayButton = [[UIButton alloc] init];
+    [self.todayButton setTitle:@"Today" forState:UIControlStateNormal];
+    [self.todayButton sizeToFit];
     
-    button.frame = CGRectMake(2, self.frame.size.height - 90, self.frame.size.width - 4,  button.frame.size.height);
-    [button addTarget:self action:@selector(todayButtonPressed:) forControlEvents:UIControlEventTouchDown];
-    [button setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
-    [button setBackgroundColor:[[UIColor lightGrayColor] colorWithAlphaComponent:0.5f]];
-    button.layer.cornerRadius = 5.0f;
-    [self addSubview:button];
+    // Move todaybutton just below table content
+    
+    self.tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width,  self.todayButton.frame.size.height + 40)];
+    self.todayButton.frame = CGRectMake(10, 20, self.frame.size.width - 20,  self.todayButton.frame.size.height);
+    [self.todayButton addTarget:self action:@selector(todayButtonPressed:) forControlEvents:UIControlEventTouchDown];
+    [self.todayButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
+    [self.todayButton setBackgroundColor:[[UIColor lightGrayColor] colorWithAlphaComponent:0.5f]];
+    self.todayButton.layer.cornerRadius = 5.0f;
+    [self.tableView.tableFooterView addSubview:self.todayButton];
 }
 
 - (void)todayButtonPressed:(id) sender{
@@ -204,6 +214,14 @@
 }
 
 - (void)setMealPlanDateComponents:(NSMutableArray *)mealPlanDateComponents{
+    // Find the oldest date
+    self.oldestMealPlanDateComponents = mealPlanDateComponents[0];
+    for(NSDateComponents *comp in mealPlanDateComponents){
+        // if comp is older (smaller) than the current oldest, set it to the oldest
+        if([[comp date] compare:[self.oldestMealPlanDateComponents date]] < 0){
+            self.oldestMealPlanDateComponents = comp;
+        }
+    }
     _mealPlanDateComponents = mealPlanDateComponents;
     [self.tableView reloadData];
 }
@@ -272,13 +290,13 @@
     NSInteger firstWeek = [self.calendar components:NSWeekOfMonthCalendarUnit fromDate:firstOfMonth].weekOfMonth;
     NSInteger lastWeek = [self.calendar components:NSWeekOfMonthCalendarUnit fromDate:lastOfMonth].weekOfMonth;
     NSInteger targetWeek = [self.calendar components:NSWeekOfMonthCalendarUnit fromDate:date].weekOfMonth;
-
+    
     // if the date is not in the same month as firstDate, return either the firstWeek or lastWeek
     if([self.calendar components:NSMonthCalendarUnit fromDate:date].month != [self.calendar components:NSMonthCalendarUnit fromDate:self.firstDate].month){
         if([date compare:firstOfMonth] < 0){
             return [NSIndexPath indexPathForRow:(self.pinsHeaderToTop ? 0 : 1) + firstWeek - 1 inSection:section];
         } else{
-            return [NSIndexPath indexPathForRow:(self.pinsHeaderToTop ? 0 : 1) + lastWeek + 1 inSection:section - 1];
+            return [NSIndexPath indexPathForRow:(self.pinsHeaderToTop ? 0 : 1) + lastWeek - firstWeek inSection:section - 1];
         }
     }
     return [NSIndexPath indexPathForRow:(self.pinsHeaderToTop ? 0 : 1) + targetWeek - firstWeek inSection:section];
@@ -317,6 +335,9 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView;
 {
+    if(!self.firstDate || !self.lastDate){
+        return 0;
+    }
     return 1 + [self.calendar components:NSMonthCalendarUnit fromDate:self.firstDate toDate:self.lastDate options:0].month;
 }
 
@@ -336,6 +357,8 @@
         if (!cell) {
             cell = [self makeHeaderCellWithIdentifier:identifier];
         }
+        [cell checkNeedToHidePreviousMonthButton];
+        [cell checkNeedToHideNextMonthButton];
         return cell;
     } else {
         static NSString *identifier = @"row";

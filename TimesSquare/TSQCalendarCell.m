@@ -48,7 +48,11 @@
 
 + (CGFloat)cellHeight;
 {
-    return 46.0f;
+    // Shrink cells on 3.5 inch device
+    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone && [UIScreen mainScreen].bounds.size.height == 480.0){
+        return 40.0f;
+    }
+    return 50.0f;
 }
 
 - (NSUInteger)daysInWeek;

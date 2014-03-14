@@ -51,6 +51,7 @@
 @property (nonatomic, strong) NSCalendar *calendar;
 
 @property (nonatomic, strong) NSMutableArray *mealPlanDateComponents;
+@property (nonatomic, strong) NSDateComponents *oldestMealPlanDateComponents;
 
 /** @name Visual Configuration */
 

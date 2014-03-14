@@ -8,6 +8,7 @@
 //  which Square, Inc. licenses this file to you.
 
 #import "TSQCalendarMonthHeaderCell.h"
+#import "TSQCalendarView.h"
 
 
 static const CGFloat TSQCalendarMonthHeaderCellMonthsHeight = 20.f;
@@ -39,6 +40,7 @@ static const CGFloat TSQCalendarMonthHeaderCellMonthsHeight = 20.f;
         }
     }
     
+    [self createNavigationButtons];
     [self createHeaderLabels];
 
     return self;
@@ -77,9 +79,31 @@ static const CGFloat TSQCalendarMonthHeaderCellMonthsHeight = 20.f;
     
     [self.nextMonth addTarget:self action:@selector(nextMonthButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
     [self.previousMonth addTarget:self action:@selector(previousMonthButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
-
+    
     [self addSubview:self.nextMonth];
     [self addSubview:self.previousMonth];
+}
+
+- (void)checkNeedToHidePreviousMonthButton{
+    //If we are in the same month as the oldestMealPlanDate, hide the previous arrow
+    NSDateComponents *firstDateComponents = [self.calendar components:NSMonthCalendarUnit|NSYearCalendarUnit fromDate:self.calendarView.firstDate];
+    
+    if(firstDateComponents.month == self.calendarView.oldestMealPlanDateComponents.month &&
+       firstDateComponents.year == self.calendarView.oldestMealPlanDateComponents.year){
+        self.previousMonth.hidden = YES;
+    } else{
+        self.previousMonth.hidden = NO;
+    }
+}
+
+- (void)checkNeedToHideNextMonthButton{
+    //If we are in the same month as the oldestMealPlanDate, hide the previous arrow
+    NSDateComponents *difference = [self.calendar components:NSYearCalendarUnit fromDate:[NSDate date] toDate:self.calendarView.firstDate options:0];
+    if(difference.year >= 1){
+        self.nextMonth.hidden = YES;
+    } else{
+        self.nextMonth.hidden = NO;
+    }
 }
 
 - (void)nextMonthButtonPressed:(id) sender{
@@ -149,7 +173,6 @@ static const CGFloat TSQCalendarMonthHeaderCellMonthsHeight = 20.f;
     [super setFirstOfMonth:firstOfMonth];
     self.textLabel.text = [self.monthDateFormatter stringFromDate:firstOfMonth];
     self.accessibilityLabel = self.textLabel.text;
-    [self createNavigationButtons];
 }
 
 - (void)setBackgroundColor:(UIColor *)backgroundColor;
