@@ -61,10 +61,6 @@
     [self addSubview:_tableView];
     
     [self addTodayButton];
-    
-    if ([[UIDevice currentDevice].systemVersion floatValue] >= 7){
-        _tableView.contentInset = UIEdgeInsetsMake(-70, 0, 0, 0);
-    }
 }
 
 - (void)addTodayButton{
